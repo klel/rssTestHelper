@@ -28,49 +28,18 @@
 document.addEventListener('DOMContentLoaded', function () {
   var checkButton = document.getElementById('check');
   checkButton.addEventListener('click', function () {
-    
+    query(true);
   }, false);
 
 });
 
-function changeBtnText(btn, flag){
-  
-}
-
-
-function start(){
-  chrome.storage.sync.get(['needObserve'], (result) => {
-   ask(true);
-  });
-}
-
-function stop(){
-  ask(false);
-}
-
-function ask(result){
-  const needObserve = result.needObserve;
-  if (!needObserve){
-    query(true);
-    return;
-  }
-
-  query(needObserve);
-}
 
 function query(needObserve) {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     // console.log(tabs);  
     chrome.tabs.sendMessage(tabs[0].id, { start: needObserve }, function (response) {
-      saveState(response);
+      console.info(response);
     });
-
   });
 };
 
-
-function saveState(value) {
-  chrome.storage.sync.set({ needObserve: value }, function () {
-    console.log('Value is set to ' + value);
-  });
-}

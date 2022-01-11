@@ -62,8 +62,11 @@
 
 
 const getSelectedTestName = () => {
+    const input = [...document.querySelectorAll('.ant-select-selection-item')][0];
+    if(!input)
+        throw Error("Perhaps you need to choose test what you want in combo box or combo box is missing");
 
-    return [...document.querySelectorAll('.ant-select-selection-item')][0]?.innerText;
+    return input.innerText;
 }
 
 const saveBtnHandler = (e) => {
@@ -154,7 +157,6 @@ const startObserve = (observer, target, config) => {
     }
 
     observer.observe(target, config);
-    console.log('The Observer has started...');
 
     return observer;
 };
@@ -226,39 +228,39 @@ const markLastAnswered = (testName) => {
                     group.querySelector(`input[value= "${v}"]`).click();
                 })
             } else {
-                console.log(`Answer ${e[0]} not find`);
+                console.log(`Answer id# "${e[0]}" is not found`);
             }
         } else {
             let group = document.querySelector(`.ant-radio-group-outline[id="${e[0]}"]`);
             if (group) {
                 group.querySelector(`input[value= "${e[1]}"]`).click();
             } else {
-                console.log(`Answer ${e[0]} not find`);
+                console.log(`Answer id# "${e[0]}" is not found`);
             }
         }
     });
 
 }
 
-let obsRef = {};
+let obsRef = {},
+    isEnable = false;
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
-        console.log(sender.tab ?
-            "from a content script:" + sender.tab.url :
-            "from the extension");
-
-        if (request.start) {
+      
+        if (request.start && !isEnable) {
             insertPopup();
             obsRef = startObserve();
+            isEnable = true;
             sendResponse({
-                status: true,
+                status: isEnable,
                 message: "The Observer has started"
             });
         } else {
             cancelObserve(obsRef);
             removePopup();
+            isEnable = false;
             sendResponse({
-                status: false,
+                status: isEnable,
                 message: "The Observer has stopped"
             });
         }
