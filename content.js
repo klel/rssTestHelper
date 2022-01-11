@@ -1,46 +1,3 @@
-
-//create button close to submit button
-const submitBtnClassName = '.ant-btn.ant-btn-primary.ant-btn-lg';
-const saveBtn = (appendTo) => {
-    let button = document.createElement('button');
-    //toDo  get off to a styles
-    button.id = 'rssSaveCheckedAnswers';
-    button.innerText = 'Save';
-    // button.style.marginLeft = '10px';
-    button.type = 'button';
-    button.addEventListener('click', saveBtnHandler);
-    document.querySelector(appendTo).after(button);
-    return '#rssSaveCheckedAnswers';
-};
-
-const fillBtn = (appendTo) => {
-    let button = document.createElement('button');
-    //toDo  get off to a styles
-    button.id = 'rssFillAnswers';
-    button.innerText = 'Fill';
-    // button.style.marginLeft = '10px';
-    button.type = 'button';
-    button.addEventListener('click', fillBtnHandler);
-    document.querySelector(appendTo).before(button);
-    return '#rssFillAnswers';
-}
-
-
-if (document.readyState !== "loading") {
-    console.log('loading');
-    new Promise((res) => setTimeout(() => res(saveBtn(submitBtnClassName)), 1000))
-        .then(b => {
-            fillBtn('#courseTaskId');
-        });
-
-} else {
-    console.log('loaded');
-    document.addEventListener('DOMContentLoaded', () => {
-        debugger
-        console.log('cont loaded');
-        saveBtn(submitBtnClassName)
-    }, false);
-}
 // const testName = document.querySelectorAll('.ant-select')[0].innerText;
 // debugger
 //document.querySelector('#courseTaskId').addEventListener('change', () => console.log('changed'))
@@ -62,6 +19,7 @@ if (document.readyState !== "loading") {
  *                  }]
  * }
  */
+//Description
 
 //[...document.querySelectorAll('#answer-23 .ant-radio-input')][0].checked;
 
@@ -98,17 +56,114 @@ if (document.readyState !== "loading") {
  * при каждом чихе меняет DOM... и с этим надо что-то думать. 
  */
 
-var target = document.getElementById('__next');
 
 
-const config = {
-    //attributes: true,
-    childList: true,
-    subtree: true
+/* GUI Part*/
+
+
+const getSelectedTestName = () => {
+
+    return [...document.querySelectorAll('.ant-select-selection-item')][0]?.innerText;
+}
+
+const saveBtnHandler = (e) => {
+    const testName = getSelectedTestName();
+    localStorage.setItem(testName, JSON.stringify(cashedAnswers));
 };
+
+const fillBtnHandler = (e) => {
+    const test = getSelectedTestName();
+    if (test) {
+        markLastAnswered(test);
+    }
+};
+
+const saveBtn = (appendTo) => {
+    let button = document.createElement('button');
+    button.id = 'rssSaveCheckedAnswers';
+    button.innerText = 'Save';
+    button.type = 'button';
+    button.addEventListener('click', saveBtnHandler);
+    document.querySelector(appendTo).append(button);
+    return '#rssSaveCheckedAnswers';
+};
+
+const fillBtn = (appendTo) => {
+    let button = document.createElement('button');
+    button.id = 'rssFillAnswers';
+    button.innerText = 'Fill';
+    button.type = 'button';
+    button.addEventListener('click', fillBtnHandler);
+    document.querySelector(appendTo).append(button);
+    return '#rssFillAnswers';
+}
+
+//#region Auto creation _ deprecated
+// if (document.readyState !== "loading") {
+//     console.log('loading');
+//     new Promise((res) => setTimeout(() => res(saveBtn(submitBtnClassName)), 1000))
+//         .then(b => {
+//             fillBtn('#courseTaskId');
+//         });
+
+// } else {
+//     console.log('loaded');
+//     document.addEventListener('DOMContentLoaded', () => {
+//         debugger
+//         console.log('cont loaded');
+//         saveBtn(submitBtnClassName)
+//     }, false);
+// }
+//#endregion
+
+const insertPopup = () => {
+    let panel = document.createElement('div');
+
+    panel.id = 'helper-panel';
+
+
+    document.querySelector('body');
+    document.querySelector('body').append(panel);
+    fillBtn('#helper-panel');
+    saveBtn('#helper-panel');
+}
+
+const removePopup = () => {
+    document.querySelector('#helper-panel').remove();
+}
+
 
 
 const cashedAnswers = {};
+
+const initObserver = () => {
+    const config = {
+        //attributes: true,
+        childList: true,
+        subtree: true
+    };
+    var target = document.getElementById('__next');
+    const observer = new MutationObserver(mainWrapperMutationHandler);
+
+    return [observer, target, config];
+};
+
+const startObserve = (observer, target, config) => {
+    if (!observer || !target || !config) {
+        [observer, target, config] = initObserver();
+    }
+
+    observer.observe(target, config);
+    console.log('The Observer has started...');
+
+    return observer;
+};
+
+const cancelObserve = (observer) => {
+    observer.disconnect();
+};
+
+
 
 //TODO: reason for multiple triggered and how to fix it
 const mainWrapperMutationHandler = () => {
@@ -122,8 +177,7 @@ const mainWrapperMutationHandler = () => {
 
     const testArea = [...document.querySelectorAll("main.ant-layout-content")];
     if (!testArea) {
-        console.info('Target section not be founded');
-        return;
+        throw Error('Target section not be founded');
     }
 
     testArea[0].addEventListener('change', (e) => {
@@ -153,35 +207,9 @@ const mainWrapperMutationHandler = () => {
         }
 
         cashedAnswers[quiz.question] = quiz.answer;
-        console.log(cashedAnswers);
+        // console.log(cashedAnswers);
     });
 }
-
-// Создаём экземпляр наблюдателя с указанной функцией колбэка
-const observer = new MutationObserver(mainWrapperMutationHandler);
-
-// Начинаем наблюдение за настроенными изменениями целевого элемента
-observer.observe(target, config);
-
-// document.querySelector('.ant-btn.ant-btn-primary.ant-btn-lg').addEventListener(() => 
-
-// );
-const getSelectedTestName = () => {
-
-    return [...document.querySelectorAll('.ant-select-selection-item')][0]?.innerText;
-}
-
-const saveBtnHandler = (e) => {
-    const testName = getSelectedTestName();
-    localStorage.setItem(testName, JSON.stringify(cashedAnswers));
-};
-
-const fillBtnHandler = (e) => {
-    const test = getSelectedTestName();
-    if (test) {
-        markLastAnswered(test);
-    }
-};
 
 const markLastAnswered = (testName) => {
     //const test = getSelectedTestName();
@@ -190,19 +218,50 @@ const markLastAnswered = (testName) => {
     Object.entries(answers).forEach(e => {
         let key = e[0],
             value = e[1];
+        //array means checkbox
         if (Array.isArray(value)) {
             let group = document.querySelector('.ant-checkbox-group[id=' + key + '');
-            value.forEach(v => {
-                group.querySelector(`input[value= "${v}"]`).click();
-            })
+            if (group) {
+                value.forEach(v => {
+                    group.querySelector(`input[value= "${v}"]`).click();
+                })
+            } else {
+                console.log(`Answer ${e[0]} not find`);
+            }
         } else {
             let group = document.querySelector(`.ant-radio-group-outline[id="${e[0]}"]`);
-            group.querySelector(`input[value= "${e[1]}"]`).click();
+            if (group) {
+                group.querySelector(`input[value= "${e[1]}"]`).click();
+            } else {
+                console.log(`Answer ${e[0]} not find`);
+            }
         }
     });
 
 }
 
-//When i have to stop it?
-// observer.disconnect();
+let obsRef = {};
+chrome.runtime.onMessage.addListener(
+    function (request, sender, sendResponse) {
+        console.log(sender.tab ?
+            "from a content script:" + sender.tab.url :
+            "from the extension");
+
+        if (request.start) {
+            insertPopup();
+            obsRef = startObserve();
+            sendResponse({
+                status: true,
+                message: "The Observer has started"
+            });
+        } else {
+            cancelObserve(obsRef);
+            removePopup();
+            sendResponse({
+                status: false,
+                message: "The Observer has stopped"
+            });
+        }
+    }
+);
 

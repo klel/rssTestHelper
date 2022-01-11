@@ -10,13 +10,14 @@
         "default_popup": "popup.html"
     },
     "permissions": [
-        "activeTab"
+        "activeTab",
+        "storage"
     ],
     "content_scripts": [{
         "matches": [
             "*://*/*student/auto-test?course*"
         ],
-        "css": ["rssTestHelperStyle.css"],
+        "css": ["style.css"],
         "js": ["content.js"]
     }]
 }
